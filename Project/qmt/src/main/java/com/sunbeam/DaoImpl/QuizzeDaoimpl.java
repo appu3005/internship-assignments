@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 import com.sunbeam.DAO.QuizzeDao;
 import com.sunbeam.DBUtil.DButil;
+import com.sunbeam.entity.Question;
 import com.sunbeam.entity.Quizze;
 import com.sunbeam.entity.Result;
 import com.sunbeam.exceptions.NoQuestionFoundException;
@@ -81,22 +82,71 @@ public class QuizzeDaoimpl implements QuizzeDao {
 
 
 	@Override
-	public HashSet<Quizze> viewQuizzes() throws Exception {
-		// TODO Auto-generated method stub
-		HashSet<Quizze> view = new HashSet<Quizze>();
-		String sql = "select * from quizzes";
-		PreparedStatement stmt = con.prepareStatement(sql);
-		ResultSet rs = stmt.executeQuery();
-		while(rs.next()){
-			int quizeid=rs.getInt("quize_id");
-			String title=rs.getString("title");
-			
-			Quizze q = new Quizze(quizeid, title);
-			view.add(q);
-			System.out.println(q.toString());				}
-		return view;
-	}
+	public List<Result> viewResults() throws Exception {
 
+	    List<Result> list = new ArrayList<>();
+
+	    String sql = "select * from result";
+
+	    PreparedStatement stmt = con.prepareStatement(sql);
+
+	    ResultSet rs = stmt.executeQuery();
+
+	    while(rs.next()) {
+
+	        int resultId = rs.getInt("result_id");
+	        int studentId = rs.getInt("student_id");
+	        int quizzeId = rs.getInt("quize_id");
+	        int score = rs.getInt("score");
+
+	        Result r = new Result(resultId, studentId, quizzeId, score);
+
+	        list.add(r);
+	    }
+
+	    return list;
+	}
+	
+	@Override
+	public List<Question> getQuestions(int quizzeId) throws Exception {
+
+	    List<Question> list = new ArrayList<>();
+
+	    System.out.println("Quiz ID Received = " + quizzeId);
+
+	    String sql = "select * from questions where quizze_id=?";
+
+	    PreparedStatement stmt = con.prepareStatement(sql);
+
+	    stmt.setInt(1, quizzeId);
+
+	    ResultSet rs = stmt.executeQuery();
+
+	    while(rs.next()) {
+
+	        System.out.println("Question Found : "
+	                + rs.getString("question"));
+
+	        Question q = new Question(
+
+	                rs.getInt("que_id"),
+	                rs.getInt("quizze_id"),
+	                rs.getString("question"),
+	                rs.getString("option_A"),
+	                rs.getString("option_B"),
+	                rs.getString("option_C"),
+	                rs.getString("option_D"),
+	                rs.getString("correct_ans")
+
+	        );
+
+	        list.add(q);
+	    }
+
+	    System.out.println("Total Questions = " + list.size());
+
+	    return list;
+	}
 
 	@Override
 	public int deleteQuizze(int quize_id) throws Exception {
@@ -116,34 +166,6 @@ public class QuizzeDaoimpl implements QuizzeDao {
 	@Override
 	public void close() throws Exception {
 	}
-
-
-	@Override
-	public List<Result> viewResults() throws Exception {
-		List<Result> list = new ArrayList<>();
-
-	    String sql = "select * from result where student_id = ?";
-
-	    PreparedStatement stmt = con.prepareStatement(sql);
-	    stmt.setInt(1, student_id);
-	    ResultSet rs = stmt.executeQuery();
-
-	    while(rs.next()) {
-
-	        int resultId = rs.getInt("result_id");
-	        int studentId = rs.getInt("student_id");
-	        int quizzeId = rs.getInt("quizze_id");
-	        int score = rs.getInt("score");
-
-	        Result r = new Result(resultId, studentId, quizzeId, score);
-
-	        list.add(r);
-	    }
-
-	    return list;
-		
-	}
-
 
 	@Override
 	public void attemptQuiz(int studentId, int quizzeId) throws Exception {
@@ -186,7 +208,7 @@ public class QuizzeDaoimpl implements QuizzeDao {
 	        return;
 	    }
 
-	    // Save score in result table
+	  
 	    String sql2 = "INSERT INTO result(student_id, quize_id, score) VALUES(?,?,?)";
 
 	    PreparedStatement stmt2 = con.prepareStatement(sql2);
@@ -214,16 +236,60 @@ public class QuizzeDaoimpl implements QuizzeDao {
 
 	    while(rs.next()) {
 
-	        int quizzeId = rs.getInt("quizze_id");
+	       // int quizzeId = rs.getInt("quizze_id");
+	    	int quizeid = rs.getInt("quize_id");
 	        String title = rs.getString("title");
 
-	        quizzes.add(new Quizze(quizzeId, title));
+	        quizzes.add(new Quizze(quizeid, title));
 	    }
 
 	    return quizzes;
 	}
 
+	@Override
+	public HashSet<Quizze> viewQuizzes() throws Exception {
 
+	    HashSet<Quizze> quizzes = new HashSet<>();
+
+	    String sql = "select * from quizzes";
+
+	    PreparedStatement stmt = con.prepareStatement(sql);
+
+	    ResultSet rs = stmt.executeQuery();
+
+	    while(rs.next()) {
+
+	        System.out.println(
+	                rs.getInt("quize_id") + " "
+	                + rs.getString("title"));
+
+	        Quizze q = new Quizze(
+	                rs.getInt("quize_id"),
+	                rs.getString("title")
+	        );
+
+	        quizzes.add(q);
+	    }
+	    System.out.println("Total Quiz = " + quizzes.size());
+	    
+	    return quizzes;
+	}
+	
+	@Override
+	public void saveResult(int studentId, int quizzeId, int score) throws Exception {
+
+	    String sql =
+	            "insert into result(student_id, quize_id, score) values(?,?,?)";
+
+	    PreparedStatement stmt =
+	            con.prepareStatement(sql);
+
+	    stmt.setInt(1, studentId);
+	    stmt.setInt(2, quizzeId);
+	    stmt.setInt(3, score);
+
+	    stmt.executeUpdate();
+	}
 }
 
 

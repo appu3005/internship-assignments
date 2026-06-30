@@ -30,58 +30,91 @@ public class StudentDaoImple implements StudentDao {
 			// TODO: handle exception
 		}
 	}
-
 	@Override
 	public int addStudent(Student student) {
-		
-		int count=0;
-		String sql = "insert into Student (std_name,email_id,password) values(?,?,?)";
-		
-		try(PreparedStatement stmt = con.prepareStatement(sql);
-				){
-			
-			stmt.setString(1, student.getStd_name());
-			stmt.setString(2, student.getEmail_id());
-			stmt.setNString(3,student.getPassward());
-			
-			count=stmt.executeUpdate();
-			
-		}catch( Exception e) {
-			e.printStackTrace();
-		}
-		return count;
-	}
 
+	    int count = 0;
+
+	    String sql =
+	            "insert into student(std_name,email_id,passward) values(?,?,?)";
+
+	    try {
+
+	        PreparedStatement stmt =
+	                con.prepareStatement(sql);
+
+	        stmt.setString(1, student.getStd_name());
+	        stmt.setString(2, student.getEmail_id());
+	        stmt.setString(3, student.getPassword());
+
+	        // DEBUG PRINT
+	        System.out.println("===== REGISTER DATA =====");
+	        System.out.println("Name = " + student.getStd_name());
+	        System.out.println("Email = " + student.getEmail_id());
+	        System.out.println("Password = " + student.getPassword());
+
+	        count = stmt.executeUpdate();
+
+	        System.out.println("Rows Inserted = " + count);
+
+	    }
+	    catch(Exception e) {
+
+	        e.printStackTrace();
+	    }
+
+	    return count;
+	}
+	
 	@Override
-	public Student loginStudent(String email, String passward) {
-		
-		Student student= null;
-		String sql ="select * from student where email_id= ? and passward=?";
-		
-		try(PreparedStatement stmt = con.prepareStatement(sql)) {
-			
-			stmt.setString(1, email);
-			stmt.setString(2, passward);
-			
-			ResultSet rs = stmt.executeQuery();
-			
-			if (rs.next()) {
+	public Student loginStudent(String email, String password) {
+
+	    Student student = null;
+
+	    String sql =
+	            "select * from student where email_id=? and passward=?";
+
+	    try {
+
+	        PreparedStatement stmt =
+	                con.prepareStatement(sql);
+
+	        stmt.setString(1, email);
+	        stmt.setString(2, password);
+
+	        ResultSet rs = stmt.executeQuery();
+
+	        if(rs.next()) {
 
 	            student = new Student();
 
-	            student.setStudent_id(rs.getInt("student_id"));
-	            student.setStd_name(rs.getString("std_name"));
-	            student.setEmail_id(rs.getString("email_id"));
-	            student.setPassword(rs.getString("passward"));
+	            student.setStudent_id(
+	                    rs.getInt("student_id"));
+
+	            student.setStd_name(
+	                    rs.getString("std_name"));
+
+	            student.setEmail_id(
+	                    rs.getString("email_id"));
+
+	            student.setPassword(
+	                    rs.getString("passward"));
+
+	            System.out.println("Login Success");
+	        }
+	        else {
+
+	            System.out.println("Student Not Found");
 	        }
 
-			
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		return student;
-	}
+	    }
+	    catch(Exception e) {
 
+	        e.printStackTrace();
+	    }
+
+	    return student;
+	}
 	@Override
 	public void register(Student s) throws Exception {
 
@@ -103,7 +136,7 @@ public class StudentDaoImple implements StudentDao {
 
 	    stmt.setString(1, s.getStd_name());
 	    stmt.setString(2, s.getEmail_id());
-	    stmt.setString(3, s.getPassward());
+	    stmt.setString(3, s.getPassword());
 
 	    int count = stmt.executeUpdate();
 
@@ -153,11 +186,30 @@ public class StudentDaoImple implements StudentDao {
 	    return scores;
 	}
 
+
 	@Override
 	public HashSet<Quizze> viewQuizzes() throws Exception {
-		return null;
-	}
 
+	    HashSet<Quizze> quizzes = new HashSet<>();
+
+	    String sql = "select * from quizzes";
+
+	    PreparedStatement stmt = con.prepareStatement(sql);
+
+	    ResultSet rs = stmt.executeQuery();
+
+	    while(rs.next()) {
+
+	        Quizze q = new Quizze(
+	                rs.getInt("quize_id"),
+	                rs.getString("title")
+	        );
+
+	        quizzes.add(q);
+	    }
+
+	    return quizzes;
+	}
 }
 
 
